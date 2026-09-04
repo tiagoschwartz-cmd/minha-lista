@@ -1,0 +1,435 @@
+index.html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minha Lista de Tarefas</title>
+<style>
+  :root{
+    --bg1:#6C63FF;
+    --bg2:#4834d4;
+    --card:#ffffff;
+    --text:#2d2d2d;
+    --muted:#8a8a8a;
+    --done:#a0a0a0;
+    --accent:#00c896;
+    --danger:#ff5e5e;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));
+    display:flex;
+    justify-content:center;
+    padding:30px 16px;
+    color:var(--text);
+  }
+  .app{
+    width:100%;
+    max-width:560px;
+  }
+  header{
+    text-align:center;
+    color:#fff;
+    margin-bottom:24px;
+  }
+  header h1{
+    font-size:28px;
+    margin-bottom:4px;
+    text-shadow:0 2px 6px rgba(0,0,0,.2);
+  }
+  header p{
+    opacity:.85;
+    font-size:14px;
+  }
+  .tabs{
+    display:flex;
+    background:rgba(255,255,255,.15);
+    border-radius:999px;
+    padding:6px;
+    margin-bottom:20px;
+    backdrop-filter:blur(6px);
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:10px 0;
+    border-radius:999px;
+    cursor:pointer;
+    color:#fff;
+    font-weight:600;
+    font-size:14px;
+    transition:.25s;
+    user-select:none;
+  }
+  .tab.active{
+    background:#fff;
+    color:var(--bg2);
+    box-shadow:0 4px 12px rgba(0,0,0,.15);
+  }
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:22px;
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
+    animation:fadeIn .3s ease;
+  }
+  @keyframes fadeIn{
+    from{opacity:0; transform:translateY(8px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .progress-wrap{
+    margin-bottom:18px;
+  }
+  .progress-label{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .progress-bar{
+    height:10px;
+    background:#eee;
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),#00e0a4);
+    width:0%;
+    transition:width .4s ease;
+    border-radius:999px;
+  }
+  .add-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .add-row input[type="text"]{
+    flex:1;
+    padding:12px 14px;
+    border:2px solid #eee;
+    border-radius:12px;
+    font-size:14px;
+    outline:none;
+    transition:.2s;
+  }
+  .add-row input[type="text"]:focus{
+    border-color:var(--bg1);
+  }
+  .add-row select{
+    border:2px solid #eee;
+    border-radius:12px;
+    padding:0 8px;
+    font-size:13px;
+    outline:none;
+  }
+  .add-row button{
+    background:var(--bg1);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    padding:0 18px;
+    font-size:20px;
+    cursor:pointer;
+    transition:.2s;
+  }
+  .add-row button:hover{
+    background:var(--bg2);
+    transform:scale(1.05);
+  }
+  ul.tasks{
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-height:420px;
+    overflow-y:auto;
+    padding-right:4px;
+  }
+  ul.tasks::-webkit-scrollbar{width:6px;}
+  ul.tasks::-webkit-scrollbar-thumb{background:#ddd;border-radius:6px;}
+  li.task{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:#f7f7fb;
+    border-radius:12px;
+    padding:12px 14px;
+    animation:fadeIn .25s ease;
+    transition:.2s;
+  }
+  li.task:hover{
+    background:#f0f0fa;
+  }
+  .checkbox{
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    border:2px solid var(--bg1);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+    transition:.2s;
+  }
+  .checkbox.checked{
+    background:var(--accent);
+    border-color:var(--accent);
+  }
+  .checkbox.checked::after{
+    content:"✓";
+    color:#fff;
+    font-size:13px;
+    font-weight:bold;
+  }
+  .task-text{
+    flex:1;
+    font-size:14.5px;
+    word-break:break-word;
+    transition:.2s;
+  }
+  .task-meta{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  li.task.done .task-text{
+    text-decoration:line-through;
+    color:var(--done);
+  }
+  .priority-dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+  .priority-alta{background:var(--danger);}
+  .priority-media{background:#ffb84d;}
+  .priority-baixa{background:#5ec6ff;}
+  .del-btn{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:16px;
+    cursor:pointer;
+    transition:.2s;
+    flex-shrink:0;
+  }
+  .del-btn:hover{
+    color:var(--danger);
+    transform:scale(1.15);
+  }
+  .empty{
+    text-align:center;
+    color:var(--muted);
+    font-size:14px;
+    padding:30px 0;
+  }
+  footer{
+    text-align:center;
+    color:#fff;
+    opacity:.7;
+    font-size:12px;
+    margin-top:18px;
+  }
+  .clear-done{
+    display:block;
+    margin:14px auto 0;
+    background:none;
+    border:none;
+    color:var(--bg1);
+    font-size:13px;
+    cursor:pointer;
+    text-decoration:underline;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <h1>📋 Minha Lista</h1>
+    <p>Organize suas tarefas diárias, semanais e mensais</p>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="diaria">Diária</div>
+    <div class="tab" data-tab="semanal">Semanal</div>
+    <div class="tab" data-tab="mensal">Mensal</div>
+  </div>
+
+  <div class="card">
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="progressText">0 de 0 concluídas</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="add-row">
+      <input type="text" id="taskInput" placeholder="Adicionar nova tarefa..." maxlength="100">
+      <select id="priorityInput">
+        <option value="baixa">Baixa</option>
+        <option value="media" selected>Média</option>
+        <option value="alta">Alta</option>
+      </select>
+      <button id="addBtn">+</button>
+    </div>
+
+    <ul class="tasks" id="taskList"></ul>
+    <button class="clear-done" id="clearDone">Limpar concluídas</button>
+  </div>
+
+  <footer>Seus dados ficam salvos automaticamente neste navegador</footer>
+</div>
+
+<script>
+  const STORAGE_KEY = "minhaLista_tarefas_v1";
+  let currentTab = "diaria";
+
+  function loadData(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      try{ return JSON.parse(raw); }catch(e){}
+    }
+    return { diaria: [], semanal: [], mensal: [] };
+  }
+
+  let data = loadData();
+
+  function saveData(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function uid(){
+    return Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  }
+
+  const taskList = document.getElementById("taskList");
+  const taskInput = document.getElementById("taskInput");
+  const priorityInput = document.getElementById("priorityInput");
+  const addBtn = document.getElementById("addBtn");
+  const progressFill = document.getElementById("progressFill");
+  const progressText = document.getElementById("progressText");
+  const progressPercent = document.getElementById("progressPercent");
+  const clearDoneBtn = document.getElementById("clearDone");
+
+  function render(){
+    const list = data[currentTab];
+    taskList.innerHTML = "";
+
+    if(list.length === 0){
+      taskList.innerHTML = `<li class="empty">Nenhuma tarefa por aqui ainda ✨</li>`;
+    } else {
+      // ordena: não feitas primeiro, por prioridade
+      const priorityOrder = { alta:0, media:1, baixa:2 };
+      const sorted = [...list].sort((a,b)=>{
+        if(a.done !== b.done) return a.done ? 1 : -1;
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      });
+
+      sorted.forEach(task=>{
+        const li = document.createElement("li");
+        li.className = "task" + (task.done ? " done" : "");
+
+        li.innerHTML = `
+          <div class="checkbox ${task.done ? "checked" : ""}" data-id="${task.id}"></div>
+          <span class="priority-dot priority-${task.priority}"></span>
+          <div style="flex:1;">
+            <div class="task-text">${escapeHtml(task.text)}</div>
+            <div class="task-meta">${formatDate(task.createdAt)}</div>
+          </div>
+          <button class="del-btn" data-id="${task.id}">✕</button>
+        `;
+        taskList.appendChild(li);
+      });
+    }
+
+    updateProgress();
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function formatDate(ts){
+    const d = new Date(ts);
+    return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+  }
+
+  function updateProgress(){
+    const list = data[currentTab];
+    const total = list.length;
+    const done = list.filter(t=>t.done).length;
+    const pct = total ? Math.round((done/total)*100) : 0;
+    progressFill.style.width = pct + "%";
+    progressText.textContent = `${done} de ${total} concluídas`;
+    progressPercent.textContent = pct + "%";
+  }
+
+  function addTask(){
+    const text = taskInput.value.trim();
+    if(!text) return;
+    data[currentTab].push({
+      id: uid(),
+      text,
+      priority: priorityInput.value,
+      done: false,
+      createdAt: Date.now()
+    });
+    taskInput.value = "";
+    saveData();
+    render();
+  }
+
+  addBtn.addEventListener("click", addTask);
+  taskInput.addEventListener("keydown", e=>{
+    if(e.key === "Enter") addTask();
+  });
+
+  taskList.addEventListener("click", e=>{
+    const checkbox = e.target.closest(".checkbox");
+    const delBtn = e.target.closest(".del-btn");
+
+    if(checkbox){
+      const id = checkbox.dataset.id;
+      const task = data[currentTab].find(t=>t.id === id);
+      if(task){ task.done = !task.done; saveData(); render(); }
+    }
+
+    if(delBtn){
+      const id = delBtn.dataset.id;
+      data[currentTab] = data[currentTab].filter(t=>t.id !== id);
+      saveData();
+      render();
+    }
+  });
+
+  clearDoneBtn.addEventListener("click", ()=>{
+    data[currentTab] = data[currentTab].filter(t=>!t.done);
+    saveData();
+    render();
+  });
+
+  document.querySelectorAll(".tab").forEach(tab=>{
+    tab.addEventListener("click", ()=>{
+      document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+      tab.classList.add("active");
+      currentTab = tab.dataset.tab;
+      render();
+    });
+  });
+
+  render();
+</script>
+</body>
+</html>
